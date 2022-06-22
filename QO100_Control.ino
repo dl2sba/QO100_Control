@@ -1,8 +1,17 @@
 //
+//  Board Heltec WiFi Kit 32
+//
 //  https://github.com/HelTecAutomation/Heltec_ESP32
 //  https://www.az-delivery.de/products/acs712-5a
 //  https://www.az-delivery.de/products/analog-digitalwandler-ads1115-mit-i2c-interface
 //
+//  2022-06-21
+//      Mode-Switch   PIN_MODE_SWITCH 18
+//  
+//      PA Fan        PA_FAN_PIN      17
+//
+//
+//  uploaded here   https://github.com/dl2sba/QO100_Control
 #include <Arduino.h>
 #include <heltec.h>
 #include <Adafruit_ADS1X15.h>
@@ -38,6 +47,10 @@ static uint8_t DS18B20_ADDR[8] = {
 #define TICKS_TEMP      2000
 
 #define PIN_MODE_SWITCH 18
+
+#define PA_FAN_PIN      17
+#define PA_FAN_ON       40.0
+#define PA_FAN_OFF      37.0
 
 
 /**
@@ -115,6 +128,7 @@ void setup(void) {
   while (!Serial);
 
   pinMode(PIN_MODE_SWITCH, INPUT_PULLUP);
+  pinMode(PA_FAN_PIN, OUTPUT);
 
   Heltec.begin(true, false, true);
   Heltec.display->setFont(Nimbus_Mono_L_Regular_14);
@@ -252,6 +266,12 @@ void loopFast( uint32_t pTicksTemp, uint32_t pTicksVolt) {
     ticksTemp = currTicks;
     paTemp = readOneTempSensor(DS18B20_ADDR, 9);
     updateDisplay = true;
+  }
+
+  if ( paTemp > PA_FAN_ON ) {
+    digitalWrite(PA_FAN_PIN, HIGH);
+  } else if (paTemp < PA_FAN_OFF ) {
+    digitalWrite(PA_FAN_PIN, LOW);
   }
 
   if ( currTicks > ticksVolts + pTicksVolt) {
